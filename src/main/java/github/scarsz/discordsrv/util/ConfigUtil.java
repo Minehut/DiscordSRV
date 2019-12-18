@@ -40,7 +40,7 @@ public class ConfigUtil {
     public static void migrate() {
         String configVersionRaw = DiscordSRV.config().getString("ConfigVersion");
         if (configVersionRaw.contains("/")) configVersionRaw = configVersionRaw.substring(0, configVersionRaw.indexOf("/"));
-        String pluginVersionRaw = DiscordSRV.getPlugin().getDescription().getVersion();
+        String pluginVersionRaw = DiscordSRV.getPlugin().getDescription().getVersion().replace("-MH", "");
         if (configVersionRaw.equals(pluginVersionRaw)) return;
 
         Version configVersion = configVersionRaw.split("\\.").length == 3
@@ -158,7 +158,6 @@ public class ConfigUtil {
 
             for (String key : oldConfigMap.keySet()) {
                 if (newConfigMap.containsKey(key) && !key.startsWith("ConfigVersion")) {
-                    DiscordSRV.debug("Migrating config option " + key + " with value " + (DebugUtil.SENSITIVE_OPTIONS.stream().anyMatch(key::equalsIgnoreCase) ? "OMITTED" : oldConfigMap.get(key)) + " to new config");
                     newConfigMap.put(key, oldConfigMap.get(key));
                 }
             }
