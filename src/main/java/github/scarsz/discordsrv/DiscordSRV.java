@@ -254,7 +254,6 @@ public class DiscordSRV extends JavaPlugin implements Listener {
         // return if plugin is not in debug mode
         if (DiscordSRV.config().getInt("DebugLevel") == 0) return;
 
-        getPlugin().getLogger().info("[DEBUG] " + message + (DiscordSRV.config().getInt("DebugLevel") >= 2 ? "\n" + DebugUtil.getStackTrace() : ""));
     }
     public static void debug(Collection<String> message) {
         message.forEach(DiscordSRV::debug);
@@ -332,13 +331,6 @@ public class DiscordSRV extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        if (++DebugUtil.initializationCount > 1) {
-            DiscordSRV.error(ChatColor.RED + LangUtil.InternalMessage.PLUGIN_RELOADED.toString());
-            PlayerUtil.getOnlinePlayers().stream()
-                    .filter(player -> player.hasPermission("discordsrv.admin"))
-                    .forEach(player -> player.sendMessage(ChatColor.RED + LangUtil.InternalMessage.PLUGIN_RELOADED.toString()));
-        }
-
         ConfigUtil.migrate();
         ConfigUtil.logMissingOptions();
         DiscordSRV.debug("Language is " + config.getLanguage().getName());
@@ -347,7 +339,6 @@ public class DiscordSRV extends JavaPlugin implements Listener {
         Thread initThread = new Thread(this::init, "DiscordSRV - Initialization");
         initThread.setUncaughtExceptionHandler((t, e) -> {
             e.printStackTrace();
-            getLogger().severe("DiscordSRV failed to load properly: " + e.getMessage() + ". See " + github.scarsz.discordsrv.util.DebugUtil.run("DiscordSRV") + " for more information.");
         });
         initThread.start();
     }
@@ -367,20 +358,6 @@ public class DiscordSRV extends JavaPlugin implements Listener {
         }
 
         requireLinkModule = new RequireLinkModule();
-
-        // start the update checker (will skip if disabled)
-        if (!isUpdateCheckDisabled()) {
-            if (updateChecker == null) {
-                final ThreadFactory gatewayThreadFactory = new ThreadFactoryBuilder().setNameFormat("DiscordSRV - Update Checker").build();
-                updateChecker = Executors.newScheduledThreadPool(1);
-            }
-            DiscordSRV.updateIsAvailable = UpdateUtil.checkForUpdates();
-            DiscordSRV.updateChecked = true;
-            updateChecker.scheduleAtFixedRate(() ->
-                    DiscordSRV.updateIsAvailable = UpdateUtil.checkForUpdates(false),
-                    6, 6, TimeUnit.HOURS
-            );
-        }
 
         // shutdown previously existing jda if plugin gets reloaded
         if (jda != null) try { jda.shutdown(); jda = null; } catch (Exception e) { e.printStackTrace(); }
@@ -741,22 +718,6 @@ public class DiscordSRV extends JavaPlugin implements Listener {
             try {
                 accountLinkManager = new JdbcAccountLinkManager();
             } catch (SQLException e) {
-                StringBuilder stringBuilder = new StringBuilder("JDBC account link backend failed to initialize: ").append(ExceptionUtils.getMessage(e));
-
-                Throwable selected = e.getCause();
-                while (selected != null) {
-                    stringBuilder.append("\n").append("Caused by: ").append(selected instanceof UnknownHostException ? "UnknownHostException" : ExceptionUtils.getMessage(selected));
-                    selected = selected.getCause();
-                }
-
-                String message = stringBuilder.toString()
-                        .replace(config.getString("Experiment_JdbcAccountLinkBackend"), "<jdbc url>")
-                        .replace(config.getString("Experiment_JdbcUsername"), "<jdbc username>");
-                if (!StringUtils.isEmpty(config.getString("Experiment_JdbcPassword"))) {
-                    message = message.replace(config.getString("Experiment_JdbcPassword"), "");
-                }
-
-                DiscordSRV.warning(message);
                 DiscordSRV.warning("Account link manager falling back to flat file");
                 accountLinkManager = new AccountLinkManager();
             }
