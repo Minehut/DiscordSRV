@@ -39,7 +39,6 @@ import github.scarsz.discordsrv.hooks.chat.ChatHook;
 import github.scarsz.discordsrv.hooks.vanish.VanishHook;
 import github.scarsz.discordsrv.hooks.world.MultiverseCoreHook;
 import github.scarsz.discordsrv.listeners.*;
-import github.scarsz.discordsrv.modules.alerts.AlertListener;
 import github.scarsz.discordsrv.modules.requirelink.RequireLinkModule;
 import github.scarsz.discordsrv.modules.voice.VoiceModule;
 import github.scarsz.discordsrv.objects.*;
@@ -139,7 +138,6 @@ public class DiscordSRV extends JavaPlugin {
     @Getter private RequireLinkModule requireLinkModule;
     @Getter private PresenceUpdater presenceUpdater;
     @Getter private NicknameUpdater nicknameUpdater;
-    @Getter private AlertListener alertListener = null;
     @Getter private final Set<PluginHook> pluginHooks = new HashSet<>();
     @Getter private final long startTime = System.currentTimeMillis();
     @Getter private final File configFile = new File(getDataFolder(), "config.yml");
@@ -927,9 +925,6 @@ public class DiscordSRV extends JavaPlugin {
             DiscordSRV.warning("/discord command is being handled by plugin other than DiscordSRV. You must use /discordsrv instead.");
         }
 
-        alertListener = new AlertListener();
-        jda.addEventListener(alertListener);
-
         // set ready status
         if (jda.getStatus() == JDA.Status.CONNECTED) {
             isReady = true;
@@ -988,9 +983,6 @@ public class DiscordSRV extends JavaPlugin {
                         debug(stackTrace);
                     }
                 }
-
-                // stop alerts
-                if (alertListener != null) alertListener.unregister();
 
                 // shut down voice module
                 if (voiceModule != null) voiceModule.shutdown();
