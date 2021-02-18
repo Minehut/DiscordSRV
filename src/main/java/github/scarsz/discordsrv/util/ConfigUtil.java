@@ -44,7 +44,7 @@ public class ConfigUtil {
     public static void migrate() {
         String configVersionRaw = DiscordSRV.config().getString("ConfigVersion");
         if (configVersionRaw.contains("/")) configVersionRaw = configVersionRaw.substring(0, configVersionRaw.indexOf("/"));
-        String pluginVersionRaw = DiscordSRV.getPlugin().getDescription().getVersion();
+        String pluginVersionRaw = DiscordSRV.getPlugin().getDescription().getVersion().replace("-MH", "");
         if (configVersionRaw.equals(pluginVersionRaw)) return;
 
         Version configVersion = configVersionRaw.split("\\.").length == 3

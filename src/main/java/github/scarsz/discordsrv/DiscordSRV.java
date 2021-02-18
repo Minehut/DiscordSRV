@@ -43,7 +43,6 @@ import github.scarsz.discordsrv.hooks.chat.ChatHook;
 import github.scarsz.discordsrv.hooks.vanish.VanishHook;
 import github.scarsz.discordsrv.hooks.world.MultiverseCoreHook;
 import github.scarsz.discordsrv.listeners.*;
-import github.scarsz.discordsrv.modules.alerts.AlertListener;
 import github.scarsz.discordsrv.modules.requirelink.RequireLinkModule;
 import github.scarsz.discordsrv.modules.voice.VoiceModule;
 import github.scarsz.discordsrv.objects.CancellationDetector;
@@ -164,7 +163,6 @@ public class DiscordSRV extends JavaPlugin {
     @Getter private ScheduledExecutorService updateChecker = null;
 
     // Modules
-    @Getter private AlertListener alertListener = null;
     @Getter private RequireLinkModule requireLinkModule;
     @Getter private VoiceModule voiceModule;
 
@@ -1264,9 +1262,6 @@ public class DiscordSRV extends JavaPlugin {
             DiscordSRV.warning("/discord command is being handled by plugin other than DiscordSRV. You must use /discordsrv instead.");
         }
 
-        alertListener = new AlertListener();
-        jda.addEventListener(alertListener);
-
         // set ready status
         if (jda.getStatus() == JDA.Status.CONNECTED) {
             isReady = true;
@@ -1328,9 +1323,6 @@ public class DiscordSRV extends JavaPlugin {
                         debug(stackTrace);
                     }
                 }
-
-                // stop alerts
-                if (alertListener != null) alertListener.unregister();
 
                 // shut down voice module
                 if (voiceModule != null) voiceModule.shutdown();
@@ -2129,8 +2121,7 @@ public class DiscordSRV extends JavaPlugin {
      * modifying the server's plugins folder. This is used to prevent uploading of plugins via the console channel.
      */
     public static boolean isFileSystemLimited() {
-        return System.getenv("LimitFS") != null || System.getProperty("LimitFS") != null
-                || !config().getBooleanElse("DiscordConsoleChannelAllowPluginUpload", false);
+        return true; // MH - Disable plugin uploading
     }
 
     /**
@@ -2138,8 +2129,7 @@ public class DiscordSRV extends JavaPlugin {
      * security vulnerabilities. You shouldn't use this.
      */
     public static boolean isUpdateCheckDisabled() {
-        return System.getenv("NoUpdateChecks") != null || System.getProperty("NoUpdateChecks") != null ||
-                config().getBooleanElse("UpdateCheckDisabled", false);
+        return true; // MH - Users aren't responsible for updating the plugin
     }
 
     /**
